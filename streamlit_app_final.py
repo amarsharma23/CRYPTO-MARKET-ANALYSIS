@@ -728,14 +728,13 @@ if page == "🏠 Dashboard":
         # Format the numeric columns without style to avoid matplotlib dependency
         for col in ['Total_PnL', 'Avg_PnL', 'Std_PnL', 'Total_Volume', 'Avg_Trade_Size', 'Total_Fees']:
             sentiment_performance[col] = sentiment_performance[col].apply(lambda x: f"${x:,.2f}")
-        
-        st.dataframe(
-            sentiment_performance,
-                'Win_Rate': '{:.2f}%',
-                'Trade_Count': '{:,.0f}'
-            }).background_gradient(cmap='RdYlGn', subset=['Total_PnL', 'Win_Rate', 'Avg_PnL']),
-            width='stretch'
-        )
+
+        # Format win rate and trade count for display
+        sentiment_performance['Win_Rate'] = sentiment_performance['Win_Rate'].apply(lambda x: f"{x:.2f}%")
+        sentiment_performance['Trade_Count'] = sentiment_performance['Trade_Count'].apply(lambda x: f"{int(x):,}")
+
+        # Display dataframe plainly (avoid pandas Styler.background_gradient to remove matplotlib dependency)
+        st.dataframe(sentiment_performance, width=900)
     
     # TAB 2: Profitability
     with tab2:
