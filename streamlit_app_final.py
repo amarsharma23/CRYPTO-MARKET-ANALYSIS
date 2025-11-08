@@ -725,14 +725,12 @@ if page == "🏠 Dashboard":
         sentiment_performance['Win_Rate'] = sentiment_performance['Win_Rate'] * 100
         sentiment_performance = sentiment_performance.reindex(sentiment_order, fill_value=0)
         
+        # Format the numeric columns without style to avoid matplotlib dependency
+        for col in ['Total_PnL', 'Avg_PnL', 'Std_PnL', 'Total_Volume', 'Avg_Trade_Size', 'Total_Fees']:
+            sentiment_performance[col] = sentiment_performance[col].apply(lambda x: f"${x:,.2f}")
+        
         st.dataframe(
-            sentiment_performance.style.format({
-                'Total_PnL': '${:,.2f}',
-                'Avg_PnL': '${:,.2f}',
-                'Std_PnL': '${:,.2f}',
-                'Total_Volume': '${:,.2f}',
-                'Avg_Trade_Size': '${:,.2f}',
-                'Total_Fees': '${:,.2f}',
+            sentiment_performance,
                 'Win_Rate': '{:.2f}%',
                 'Trade_Count': '{:,.0f}'
             }).background_gradient(cmap='RdYlGn', subset=['Total_PnL', 'Win_Rate', 'Avg_PnL']),
