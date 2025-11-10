@@ -1390,18 +1390,17 @@ if page == "📈 Risk Analysis":
         # Risk metrics table
         st.markdown("---")
         st.markdown("### Complete Risk Metrics Table")
-        st.dataframe(
-            risk_metrics.style.format({
-                'Avg_PnL': '${:,.2f}',
-                'PnL_StdDev': '${:,.2f}',
-                'Max_Loss': '${:,.2f}',
-                'Max_Profit': '${:,.2f}',
-                'Avg_Trade_Size': '${:,.2f}',
-                'Trade_Size_StdDev': '${:,.2f}',
-                'Sharpe_Ratio': '{:.3f}'
-            }).background_gradient(cmap='RdYlGn', subset=['Sharpe_Ratio', 'Avg_PnL']),
-            width='stretch'
-        )
+        # Render risk_metrics as a plain formatted dataframe (avoid Styler to remove matplotlib dependency)
+        risk_metrics_display = risk_metrics.copy()
+        # Monetary formatting
+        for col in ['Avg_PnL', 'PnL_StdDev', 'Max_Loss', 'Max_Profit', 'Avg_Trade_Size', 'Trade_Size_StdDev']:
+            if col in risk_metrics_display.columns:
+                risk_metrics_display[col] = risk_metrics_display[col].apply(lambda x: f"${x:,.2f}" if pd.notnull(x) else "")
+        # Numeric formatting
+        if 'Sharpe_Ratio' in risk_metrics_display.columns:
+            risk_metrics_display['Sharpe_Ratio'] = risk_metrics_display['Sharpe_Ratio'].apply(lambda x: f"{x:.3f}" if pd.notnull(x) else "")
+
+        st.dataframe(risk_metrics_display, width=900)
     
     # TAB 2: Position Sizing
     with tabs[1]:
@@ -1462,10 +1461,11 @@ if page == "📈 Risk Analysis":
         position_stats = position_stats.reindex(sentiment_order, fill_value=0)
         
         st.markdown("### Position Size Statistics")
-        st.dataframe(
-            position_stats.style.format('${:,.2f}').background_gradient(cmap='Blues'),
-            width='stretch'
-        )
+        position_stats_display = position_stats.copy()
+        for col in ['Mean', 'Median', 'Std Dev', 'Min', 'Max']:
+            if col in position_stats_display.columns:
+                position_stats_display[col] = position_stats_display[col].apply(lambda x: f"${x:,.2f}" if pd.notnull(x) else "")
+        st.dataframe(position_stats_display, width=900)
         
         # Average position by profitability
         col1, col2 = st.columns(2)
@@ -1622,15 +1622,16 @@ if page == "📈 Risk Analysis":
         st.plotly_chart(fig, width='stretch')
         
         # Session stats table
-        st.dataframe(
-            session_perf.style.format({
-                'Total_PnL': '${:,.2f}',
-                'Avg_PnL': '${:,.2f}',
-                'Trade_Count': '{:,.0f}',
-                'Win_Rate': '{:.1f}%'
-            }).background_gradient(cmap='RdYlGn', subset=['Total_PnL', 'Avg_PnL', 'Win_Rate']),
-            width='stretch'
-        )
+        session_perf_display = session_perf.copy()
+        for col in ['Total_PnL', 'Avg_PnL']:
+            if col in session_perf_display.columns:
+                session_perf_display[col] = session_perf_display[col].apply(lambda x: f"${x:,.2f}" if pd.notnull(x) else "")
+        if 'Trade_Count' in session_perf_display.columns:
+            session_perf_display['Trade_Count'] = session_perf_display['Trade_Count'].apply(lambda x: f"{int(x):,}" if pd.notnull(x) else "")
+        if 'Win_Rate' in session_perf_display.columns:
+            session_perf_display['Win_Rate'] = session_perf_display['Win_Rate'].apply(lambda x: f"{x:.1f}%" if pd.notnull(x) else "")
+
+        st.dataframe(session_perf_display, width=900)
     
     # TAB 4: Key Insights
     with tabs[3]:
@@ -1772,17 +1773,14 @@ if page == "🔍 Deep Dive":
         
         top_10 = explore_df.head(10)[display_cols].reset_index(drop=True)
         
-        st.dataframe(
-            top_10.style.format({
-                'Size USD': '${:,.2f}',
-                'Closed PnL': '${:,.2f}',
-                'Fee': '${:,.2f}',
-                'Net_PnL': '${:,.2f}',
-                'PnL_Percentage': '{:.2f}%'
-            }).background_gradient(cmap='RdYlGn', subset=['Net_PnL', 'PnL_Percentage']),
-            width='stretch',
-            height=400
-        )
+        top_10_display = top_10.copy()
+        for col in ['Size USD', 'Closed PnL', 'Fee', 'Net_PnL']:
+            if col in top_10_display.columns:
+                top_10_display[col] = top_10_display[col].apply(lambda x: f"${x:,.2f}" if pd.notnull(x) else "")
+        if 'PnL_Percentage' in top_10_display.columns:
+            top_10_display['PnL_Percentage'] = top_10_display['PnL_Percentage'].apply(lambda x: f"{x:.2f}%" if pd.notnull(x) else "")
+
+        st.dataframe(top_10_display, width=900, height=400)
         
         # Download button
         csv = explore_df[display_cols].to_csv(index=False)
@@ -1883,18 +1881,16 @@ if page == "🔍 Deep Dive":
         side_comparison.columns = ['Total_PnL', 'Avg_PnL', 'PnL_StdDev', 'Avg_Position', 'Total_Fees', 'Win_Rate', 'Trade_Count']
         side_comparison['Win_Rate'] = (side_comparison['Win_Rate'] * 100).round(1)
         
-        st.dataframe(
-            side_comparison.style.format({
-                'Total_PnL': '${:,.2f}',
-                'Avg_PnL': '${:,.2f}',
-                'PnL_StdDev': '${:,.2f}',
-                'Avg_Position': '${:,.2f}',
-                'Total_Fees': '${:,.2f}',
-                'Win_Rate': '{:.1f}%',
-                'Trade_Count': '{:,.0f}'
-            }).background_gradient(cmap='RdYlGn', subset=['Total_PnL', 'Avg_PnL', 'Win_Rate']),
-            width='stretch'
-        )
+        side_comparison_display = side_comparison.copy()
+        for col in ['Total_PnL', 'Avg_PnL', 'PnL_StdDev', 'Avg_Position', 'Total_Fees']:
+            if col in side_comparison_display.columns:
+                side_comparison_display[col] = side_comparison_display[col].apply(lambda x: f"${x:,.2f}" if pd.notnull(x) else "")
+        if 'Win_Rate' in side_comparison_display.columns:
+            side_comparison_display['Win_Rate'] = side_comparison_display['Win_Rate'].apply(lambda x: f"{x:.1f}%" if pd.notnull(x) else "")
+        if 'Trade_Count' in side_comparison_display.columns:
+            side_comparison_display['Trade_Count'] = side_comparison_display['Trade_Count'].apply(lambda x: f"{int(x):,}" if pd.notnull(x) else "")
+
+        st.dataframe(side_comparison_display, width=900)
     
     # TAB 3: Fee Analysis
     with tabs[2]:
@@ -2029,20 +2025,23 @@ if page == "🔍 Deep Dive":
         st.markdown("---")
         st.markdown("### 📊 Complete Advanced Metrics")
         
-        st.dataframe(
-            metrics_df.style.format({
-                'Total_PnL': '${:,.2f}',
-                'Avg_PnL': '${:,.2f}',
-                'Volatility': '${:,.2f}',
-                'Trades': '{:,.0f}',
-                'Avg_Magnitude': '{:.2f}',
-                'Win_Rate': '{:.2%}',
-                'Avg_Size': '${:,.2f}',
-                'Sharpe_Ratio': '{:.3f}',
-                'Profit_Factor': '{:.3f}'
-            }).background_gradient(cmap='RdYlGn', subset=['Total_PnL', 'Sharpe_Ratio', 'Win_Rate']),
-            width='stretch'
-        )
+        metrics_df_display = metrics_df.copy()
+        for col in ['Total_PnL', 'Avg_PnL', 'Volatility', 'Avg_Size']:
+            if col in metrics_df_display.columns:
+                metrics_df_display[col] = metrics_df_display[col].apply(lambda x: f"${x:,.2f}" if pd.notnull(x) else "")
+        if 'Trades' in metrics_df_display.columns:
+            metrics_df_display['Trades'] = metrics_df_display['Trades'].apply(lambda x: f"{int(x):,}" if pd.notnull(x) else "")
+        if 'Avg_Magnitude' in metrics_df_display.columns:
+            metrics_df_display['Avg_Magnitude'] = metrics_df_display['Avg_Magnitude'].apply(lambda x: f"{x:.2f}" if pd.notnull(x) else "")
+        if 'Win_Rate' in metrics_df_display.columns:
+            # Win_Rate may be in decimal form (e.g., 0.42) or percentage already; try to format sensibly
+            metrics_df_display['Win_Rate'] = metrics_df_display['Win_Rate'].apply(lambda x: f"{x:.2%}" if pd.notnull(x) else "")
+        if 'Sharpe_Ratio' in metrics_df_display.columns:
+            metrics_df_display['Sharpe_Ratio'] = metrics_df_display['Sharpe_Ratio'].apply(lambda x: f"{x:.3f}" if pd.notnull(x) else "")
+        if 'Profit_Factor' in metrics_df_display.columns:
+            metrics_df_display['Profit_Factor'] = metrics_df_display['Profit_Factor'].apply(lambda x: f"{x:.3f}" if pd.notnull(x) else "")
+
+        st.dataframe(metrics_df_display, width=900)
         
         # Final summary
         st.markdown("---")
