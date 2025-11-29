@@ -2085,14 +2085,5 @@ if page == "🔍 Deep Dive":
 # FOOTER FOR ALL ANALYSIS PAGES
 # =============================================================================
 
-if page != "📋 Assignment Details":
-    st.markdown("---")
-    st.markdown("""
-    <div style='text-align: center; color: #888; padding: 20px;'>
-        <p><b>Bitcoin Trader Performance vs Market Sentiment Dashboard</b></p>
-    <p>Created by Amar Sharma | amarsharma358135@gmail.com | +91 9572549281</p>
-        <p>Built with Streamlit • Powered by Plotly • Analyzed with Pandas</p>
-    </div>
-    """, unsafe_allow_html=True)
 
 
